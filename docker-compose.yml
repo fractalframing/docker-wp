@@ -1,0 +1,62 @@
+version: "3.9"
+
+secrets:
+  db_password:
+    external: true
+  db_root_password:
+    external: true
+
+services:
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    secrets:
+      - db_password
+      - db_root_password
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_password
+      - MYSQL_DATABASE=wordpress
+
+  wordpress:
+    depends_on:
+      - db
+    image: wordpress:5.8.1-apache
+    volumes:
+      - wordpress_data:/var/www/html
+      - ./wp/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    restart: always
+    secrets:
+      - db_password
+    environment:
+      - WORDPRESS_DB_HOST=db:3306
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD_FILE=/run/secrets/db_password
+      - WORDPRESS_DB_NAME=wordpress
+
+  nginx:
+    depends_on:
+      - wordpress
+    image: nginx:1.21.3
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/nginx/ssl
+      - ./certbot/data:/var/www/html
+
+  certbot:
+    image: certbot/certbot:latest
+    command: certonly --webroot --webroot-path=/var/www/html --email YOUR_EMAIL --agree-tos --no-eff-email -d URL_NAME
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/logs:/var/log/letsencrypt
+      - ./certbot/data:/var/www/html
+
+volumes:
+  db_data: {}
+  wordpress_data: {}
