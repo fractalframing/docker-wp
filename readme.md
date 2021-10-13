@@ -17,8 +17,8 @@ Random password:
 ```
 Existing password:
 ```sh
- docker secret create db_root_password EXISTING_PASSWORD
- docker secret create db_password EXISTING_PASSWORD
+ printf "EXISTING_PASSWORD" | docker secret create db_password -
+ printf "EXISTING_PASSWORD" | docker secret create db_root_password -
 ```
 2. Run:
 ```sh
