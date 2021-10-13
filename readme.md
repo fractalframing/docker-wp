@@ -3,7 +3,7 @@
 _WIP_
 
 ## Dev
-1. Create db\_password.txt and db\_user.txt.
+1. Create `db_password.txt` and `db_user.txt`.
 2. Run:
 ```sh
 docker compose -f docker-compose.dev.yml up -d
